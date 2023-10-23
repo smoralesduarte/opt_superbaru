@@ -1,0 +1,20 @@
+# Ignore log files
+*.log
+
+# Ignore build artifacts
+build/
+dist/
+node_modules/
+
+# DSstore
+.DS_Store
+
+# video files
+*.mp4
+
+# Ignore .env file containing credentials, API keys, tokens, passwords, etc.
+.env
+
+# Ignore excel and pdf files
+*.xlsx
+*.pdf
