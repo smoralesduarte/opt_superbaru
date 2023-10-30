@@ -37,6 +37,9 @@ df$cajeros <- sapply(
   function(x) sum(grepl("^CA", x$ocupación))
 )
 
+# substract cajeros from num_empleados
+df$num_empleados <- df$num_empleados - df$cajeros
+
 info_sucursales_path <- "Data de Sucursales/00_Información de Sucursales.xlsx"
 
 # remove NA rows
@@ -59,6 +62,7 @@ df <- df %>%
 
 info_ventas_path_1 <-
   "Data de Ventas/10112023_Data_DepartamentosVentaDiarias_12Meses_01.xlsx"
+
 
 info_ventas_path_2 <-
   "Data de Ventas/10112023_Data_DepartamentosVentaDiarias_12Meses_02.xlsx"
@@ -99,19 +103,20 @@ info_transacciones <- info_transacciones %>%
 df <- df %>%
   left_join(info_transacciones, by = c("sucursal" = "sucursal"))
 
+df_original <- df
 # make every column except sucursal double
 df[, -1] <- sapply(df[, -1], as.double)
 
 # store the means of each column
 df_means <- colMeans(df[, -1])
 
-# divide each column by its mean, df_means is the list of means
-df[, -1] <- mapply("/", df[, -1], df_means)
+# divide each column by its mean
+df[, -1] <- as.data.frame(sweep(as.matrix(df[, -1]), 2, df_means, "/"))
 
 
 superbaru_io <- make_deadata(
   df, ni = 3, no = 2, dmus = 1,
-  inputs = c(2, 3), outputs = 5:6
+  inputs = c(2, 3, 4), outputs = 5:6
 )
 
 result_superbaru <- model_basic(
@@ -119,4 +124,19 @@ result_superbaru <- model_basic(
 )
 
 efficiencies <- efficiencies(result_superbaru)
-df
+
+target_input <- targets(result_superbaru)$target_input
+target_output <- targets(result_superbaru)$target_output
+
+target_input[, ] <- sweep(as.matrix(target_input[, ]), 2, df_means[1:3], "*")
+target_output[, ] <- sweep(as.matrix(target_output[, ]), 2, df_means[4:5], "*")
+
+target <- cbind(target_input, target_output)
+
+# plot inefficient dmus
+plot(efficiencies)
+
+# plot a constant line
+abline(h = 1, col = "red")
+
+plot(rnorm(100))
