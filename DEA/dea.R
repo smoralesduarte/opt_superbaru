@@ -140,3 +140,6 @@ plot(efficiencies)
 abline(h = 1, col = "red")
 
 plot(rnorm(100))
+
+# Decir hola
+print("hola")
