@@ -143,3 +143,6 @@ plot(rnorm(100))
 
 # Decir hola
 print("hola")
+
+# Decir adios
+print("adios")
