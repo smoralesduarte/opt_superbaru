@@ -141,3 +141,165 @@ abline(h = 1, col = "red")
 
 plot(rnorm(100))
 
+
+
+#-----------------------------------------------------------------------------
+#intento
+#dea con todas las profesiones que nos mandaron
+
+info_colaboradores_path <-
+  "Data de Colaboradores/EMPLEADOS POR SUCURSAL OCTUBRE 2023 v2.xlsx"
+# 4th row is the header
+sucursal <- readxl::excel_sheets(info_colaboradores_path)
+tibble <- lapply(
+  sucursal,
+  function(x) {
+    readxl::read_excel(info_colaboradores_path, sheet = x, skip = 3) %>%
+      rename_all(str_to_lower)
+  }
+)
+
+# Get length of each sheet and convert to vector
+num_empleados <- sapply(tibble, nrow)
+
+sucursal[[1]] <- "INTERAMERICANO"
+df_2 <- data.frame(sucursal, num_empleados)
+
+
+#borro rows adicionales que están apareciendo
+df_2 <- df_2[-c(2, 10, 11), ]
+#reindex
+rownames(df_2) <- 1:nrow(df_2)
+#le quito al tible unas hojas adicionales que están apareciendo
+tibble <- tibble[-c(2, 10, 11)]
+
+
+
+# count the number of occupations which begin with aseador
+df_2$aseadores <- sapply(
+  tibble,
+  function(x) sum(grepl("ASEADOR", x$"ocupación agrupada"))
+)
+# count the number of occupations which begin with AYUDANTE DE BODEGA
+df_2$"ayudante de bodega" <- sapply(
+  tibble,
+  function(x) sum(grepl("AYUDANTE DE BODEGA", x$"ocupación agrupada"))
+)
+# count the number of occupations which begin with  CAJERO/RA 
+df_2$"cajero" <- sapply(
+  tibble,
+  function(x) sum(grepl("CAJERO/RA", x$"ocupación agrupada"))
+)
+# count the number of occupations which begin with  DEPENDIENTE DE PANADERÍA/CAFETERÍA
+df_2$"dep panadería/cafetería" <- sapply(
+  tibble,
+  function(x) sum(grepl("DEPENDIENTE DE PANADERÍA/CAFETERÍA", x$"ocupación agrupada"))
+)
+# count the number of occupations which begin with  DEPENDIENTE DE CARNE/DELI 
+df_2$"dep carne/deli" <- sapply(
+  tibble,
+  function(x) sum(grepl("DEPENDIENTE DE CARNE/DELI", x$"ocupación agrupada"))
+)
+# count the number of occupations which begin with   GERENCIA DE SUCURSAL
+df_2$"gerencia" <- sapply(
+  tibble,
+  function(x) sum(grepl("GERENCIA DE SUCURSAL", x$"ocupación agrupada"))
+)
+# count the number of occupations which begin with   GONDOLEROS
+df_2$"gondolero" <- sapply(
+  tibble,
+  function(x) sum(grepl("GONDOLEROS", x$"ocupación agrupada"))
+)
+# count the number of occupations which begin with   OFICIAL DE PROCESOS 
+df_2$"oficial procesos" <- sapply(
+  tibble,
+  function(x) sum(grepl("OFICIAL DE PROCESOS", x$"ocupación agrupada"))
+)
+# count the number of occupations which begin with  PAQUETERA
+df_2$"paquetera" <- sapply(
+  tibble,
+  function(x) sum(grepl("PAQUETERA", x$"ocupación agrupada"))
+)
+# count the number of occupations which begin with RECIBIDOR/DESPACHADOR 
+df_2$"recibidor" <- sapply(
+  tibble,
+  function(x) sum(grepl("RECIBIDOR/DESPACHADOR", x$"ocupación agrupada"))
+)
+# count the number of occupations which begin with    SEGURIDAD Y VIGILANCIA
+df_2$"seguridad" <- sapply(
+  tibble,
+  function(x) sum(grepl("SEGURIDAD Y VIGILANCIA", x$"ocupación agrupada"))
+)
+# count the number of occupations which begin with     SUPERVISOR DE BODEGA 
+df_2$"supervisor bodega" <- sapply(
+  tibble,
+  function(x) sum(grepl("SUPERVISOR DE BODEGA", x$"ocupación agrupada"))
+)
+# count the number of occupations which begin with SUPERVISOR DE SUCURSAL 
+df_2$"supervisor de sucursal" <- sapply(
+  tibble,
+  function(x) sum(grepl("SUPERVISOR DE SUCURSAL", x$"ocupación agrupada"))
+)
+# count the number of occupations which begin with     SUPERVISOR DE GONDOLAS 
+df_2$"supervisor de gondolas" <- sapply(
+  tibble,
+  function(x) sum(grepl("SUPERVISOR DE GONDOLAS", x$"ocupación agrupada"))
+)
+# count the number of occupations which begin with  DEPENDIENTE DE FRUTAS/VEGETALES 
+df_2$"dep frutas y verduras" <- sapply(
+  tibble,
+  function(x) sum(grepl("DEPENDIENTE DE FRUTAS/VEGETALES", x$"ocupación agrupada"))
+)
+
+#--------------------------------------------------------
+#erase columns that contain a 0 
+# Identify columns containing 0
+cols_with_zero_df2 <- sapply(df_2, function(col) any(col == 0))
+
+# Remove columns with 0
+df_2 <- df_2[, !cols_with_zero_df2]
+
+
+# join info_sucursales and df_2
+df_2 <- df_2 %>%
+  left_join(info_sucursales, by = c("sucursal" = "ubicación"))
+#le pongo la información de ivu
+df_2$area[4] = 382
+# join info_transacciones and df
+df_2 <- df_2 %>%
+  left_join(info_transacciones, by = c("sucursal" = "sucursal"))
+#le pongo la información de ivu  
+df_2$"cant_transacciones"[4]= 332078
+df_2$"ventaneta"[4]= 3271645
+
+# make every column except sucursal double
+df_2[, -1] <- sapply(df_2[, -1], as.double)
+# store the means of each column
+df_2_means <- colMeans(df_2[, -1])
+
+# divide each column by its mean
+for(i in 2:ncol(df_2)){
+ df_2[, i] = (df_2[, i] / mean(df_2[, i]))
+}
+
+#modelo dea
+superbaru_io_2 <- make_deadata(
+  df_2, ni = 11, no = 2,
+  inputs = 2:12, outputs = 13:14
+)
+
+result_superbaru_2 <- model_basic(
+  superbaru_io_2, orientation = "io", rts = "crs", dmu_eval = 1:8, dmu_ref = 1:8
+)
+
+efficiencies_2 <- efficiencies(result_superbaru_2)
+
+target_input_2 <- targets(result_superbaru_2)$target_input
+target_output_2 <- targets(result_superbaru_2)$target_output
+
+
+target_2 <- cbind(target_input_2, target_output_2)
+#me toca multiplicar por las medias de las columnas guardadas es df_2_means
+for(i in 1:13){
+  target_2[, i] = target_2[ , i] * df_2_means[i]
+}
