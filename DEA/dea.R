@@ -9,6 +9,7 @@ library(readxl)
 library(plyr)
 library(deaR)
 library(ggridges)
+library(lubridate)
 
 #-----------------------------------------------------------------------------
 info_colaboradores_path <-
@@ -303,3 +304,60 @@ target_2 <- cbind(target_input_2, target_output_2)
 for(i in 1:13){
   target_2[, i] = target_2[ , i] * df_2_means[i]
 }
+
+
+##-----------------------------------------------------------------------
+##-----------------------------------------------------------------------
+
+#outputs
+#ventas
+info_transacciones_path <-
+  "Data de Ventas/10112023_Data_TransaccionesVentaDiarias_12Meses.xlsx"
+
+# Read and join
+info_transacciones <- read_excel(info_transacciones_path) %>%
+  rename_all(str_to_lower) %>%
+  dplyr::rename(cant_transacciones = `#cant de transac`) %>%
+  dplyr::rename(ventaneta = `$ventaneta`)
+
+#convert date to a date class
+info_transacciones$fecha <- as.Date(info_transacciones$fecha)
+# Combine 'fecha' and 'hra_inic_transac' into a single datetime column
+info_transacciones <- info_transacciones %>%
+  mutate(DateTime = as.POSIXct(paste(fecha, hra_inic_transac), format = "%Y-%m-%d %H"))
+
+
+#borro columnas innecesarias (hora, idcaja, cant_trasacciones, fecha)
+info_transacciones <- info_transacciones %>%
+  select(-hra_inic_transac, -idcaja, -cant_transacciones, -fecha)
+
+
+# Create a new column based on the day of the month for the three categories:
+# quincena, fin_mes, otro
+info_transacciones <- info_transacciones %>%
+  mutate(categoria_dia = case_when(
+    day(DateTime) %in% 15:17 ~ "quincena",
+    day(DateTime) %in% 28:31 ~ "fin_mes",
+    TRUE ~ "otro"
+  ))
+
+# Extract the day of the week and create a new column for 4-hour periods 
+#from min(hour(info_transacciones$DateTime))= 1am to max(hour(info_transacciones$DateTime)) =  23pm
+#create a column called periodo
+info_transacciones <- info_transacciones %>%
+  mutate(dia_semana = weekdays(DateTime),
+         periodo = cut(hour(DateTime), breaks = seq(0, 24, by = 4), labels = FALSE))
+
+# Summarize total sales, difhours annd number of days in filters in each s,p, d, q
+#pregunta: en num_dias estoy contando las apariciones de cada grupo de d, s, q, p
+result_transacciones <- info_transacciones %>%
+  group_by(sucursal, categoria_dia, dia_semana, periodo) %>%
+  dplyr::summarize(ventas = sum(ventaneta), dif_hora = max(hour(DateTime)) - min(hour(DateTime)), num_dias = n())
+
+#añadir columna de m2
+# Merge the tibbles based on the 'store' column
+result_transacciones <- left_join(result_transacciones, info_sucursales, by = c("sucursal"= "ubicación"))
+
+# Add a new column that is our final output
+result_transacciones <- result_transacciones %>%
+  mutate(output_final = ventas/((num_dias)*(dif_hora)*(area)))
