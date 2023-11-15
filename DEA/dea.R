@@ -379,6 +379,8 @@ info_horarios_boquete_path <-
 # Read
 info_horarios_boquete <- read_excel(info_horarios_boquete_path) %>%
   rename_all(str_to_lower)
+info_horarios_doleguita[[2]]<- as.character(info_horarios_doleguita[[2]])
+
 #cambio el header 
 colnames(info_horarios_boquete) <- info_horarios_boquete[4, ]
 #borro columnas
@@ -419,7 +421,7 @@ merged_horarios_boquete[41,]$"OCUPACIÓN AGRUPADA" <- "DEPENDIENTE DE CARNE/DELI
 
 
 #horas están en decimales, no sé cómo hacer lo de las horas
-#---------------------------------------------------------------------------------------------------
+#------------------------------------------------------
 #######doleguita 
 info_horarios_doleguita_path <-
   "horarios empleados/HORARIO DE DOLEGUITA.xlsx"
@@ -427,6 +429,7 @@ info_horarios_doleguita_path <-
 # Read
 info_horarios_doleguita <- read_excel(info_horarios_doleguita_path) %>%
   rename_all(str_to_lower)
+
 #cambio el header 
 colnames(info_horarios_doleguita) <- info_horarios_doleguita[4, ]
 #borro columnas
@@ -472,3 +475,32 @@ merged_horarios_doleguita[14,]$"OCUPACIÓN AGRUPADA" <- "CAJERO/RA"
 #la # 22 no está
 #merged_horarios_doleguita[22,]$"OCUPACIÓN AGRUPADA" <- "CAJERO/RA"
 
+
+
+######-------------------------------------------------------
+info_horarios_doleguita_path <-
+  "horarios empleados/HORARIO DE DOLEGUITA.xlsx"
+info_horarios_boquete_path <-
+  "horarios empleados/HORARIO BOQUETE.xlsx"
+info_horarios_inter_path <-
+  "horarios empleados/HORARIO INTERAMERICANO.XLSX"
+info_horarios_ivu_path <-
+  "horarios empleados/HORARIO IVU DOS PINOS.xlsx"  
+info_horarios_mall_path <-
+  "horarios empleados/HORARIO MALL.xlsx"
+info_horarios_riviera_path <-
+  "horarios empleados/HORARIO RIVIERA.xlsx"
+
+# Read
+info_horarios_doleguita <- read_excel(info_horarios_doleguita_path) %>%
+  rename_all(str_to_lower)
+info_horarios_boquete <- read_excel(info_horarios_boquete_path) %>%
+  rename_all(str_to_lower)
+info_horarios_inter <- read_excel(info_horarios_inter_path) %>%
+  rename_all(str_to_lower)
+info_horarios_ivu <- read_excel(info_horarios_ivu_path) %>%
+  rename_all(str_to_lower)
+info_horarios_mall <- read_excel(info_horarios_mall_path) %>%
+  rename_all(str_to_lower)  
+info_horarios_riviera <- read_excel(info_horarios_riviera_path) %>%
+  rename_all(str_to_lower)
