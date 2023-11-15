@@ -10,6 +10,7 @@ library(plyr)
 library(deaR)
 library(ggridges)
 library(lubridate)
+library(tidyr)
 
 #-----------------------------------------------------------------------------
 info_colaboradores_path <-
@@ -346,7 +347,7 @@ info_transacciones <- info_transacciones %>%
 #create a column called periodo
 info_transacciones <- info_transacciones %>%
   mutate(dia_semana = weekdays(DateTime),
-         periodo = cut(hour(DateTime), breaks = seq(0, 24, by = 4), labels = FALSE))
+         periodo = cut(hour(DateTime), breaks = seq(6, 22, by = 4), labels = FALSE))
 
 # Summarize total sales, difhours annd number of days in filters in each s,p, d, q
 #pregunta: en num_dias estoy contando las apariciones de cada grupo de d, s, q, p
@@ -361,3 +362,113 @@ result_transacciones <- left_join(result_transacciones, info_sucursales, by = c(
 # Add a new column that is our final output
 result_transacciones <- result_transacciones %>%
   mutate(output_final = ventas/((num_dias)*(dif_hora)*(area)))
+
+
+####-----------
+#########################################################################
+#inputs
+#descargo las hojas de los horarios y el excel de las profesiones agrupadas para mergearlos
+info_colaboradores_path_new <-
+  "Data de Colaboradores/EMPLEADOS POR SUCURSAL OCTUBRE 2023 v2.xlsx"
+
+
+#######boquete  
+info_horarios_boquete_path <-
+  "horarios empleados/HORARIO BOQUETE.xlsx"
+
+# Read
+info_horarios_boquete <- read_excel(info_horarios_boquete_path) %>%
+  rename_all(str_to_lower)
+#cambio el header 
+colnames(info_horarios_boquete) <- info_horarios_boquete[4, ]
+#borro columnas
+info_horarios_boquete <- info_horarios_boquete[-c(1, 2, 3, 4), ]
+#cambio el nombre de horarios_boquete
+colnames(info_horarios_boquete)[4] <- "SALIDA_LUNCH"
+colnames(info_horarios_boquete)[5] <- "ENTRADA_LUNCH"
+#remove the firma column
+info_horarios_boquete <- info_horarios_boquete[, !(names(info_horarios_boquete) %in% c("FIRMA"))]
+# erase rows with na 
+info_horarios_boquete <- na.omit(info_horarios_boquete)
+
+categorias_boquete  <- read_excel(info_colaboradores_path_new, sheet = 8) %>%
+  rename_all(str_to_lower)
+#header  
+colnames(categorias_boquete) <- categorias_boquete[4,]
+categorias_boquete <- categorias_boquete[-c(1, 2, 3, 4),]
+
+#creo primer_nombre
+categorias_boquete$PRIMER_NOMBRE <- sapply(strsplit(categorias_boquete$NOMBRE," "), `[`, 1)
+categorias_boquete$PRIMER_APELLIDO <- sapply(strsplit(categorias_boquete$APELLIDO," "), `[`, 1)
+
+# Use mutate to create the new column "nombre_completo"
+categorias_boquete <- categorias_boquete %>%
+  mutate(NOMBRE_COMPLETO = paste(PRIMER_NOMBRE, PRIMER_APELLIDO, sep = " "))
+
+#merge by nombre completo y nombre la ocupacion agrupada
+merged_horarios_boquete <- 
+  merge(info_horarios_boquete, categorias_boquete[, c("NOMBRE_COMPLETO", "OCUPACIÓN AGRUPADA")], by.x = "NOMBRE", by.y = "NOMBRE_COMPLETO", all.x = TRUE)
+
+#lleno ocupaciones de person4as que no mergearon
+merged_horarios_boquete[17,]$"OCUPACIÓN AGRUPADA" <- "GONDOLEROS"
+merged_horarios_boquete[24,]$"OCUPACIÓN AGRUPADA" <- "SUPERVISOR DE SUCURSAL"
+merged_horarios_boquete[27,]$"OCUPACIÓN AGRUPADA" <- "GONDOLEROS"
+merged_horarios_boquete[36,]$"OCUPACIÓN AGRUPADA" <- "SUPERVISOR DE SUCURSAL"
+merged_horarios_boquete[37,]$"OCUPACIÓN AGRUPADA" <- "CAJERO/RA"
+merged_horarios_boquete[41,]$"OCUPACIÓN AGRUPADA" <- "DEPENDIENTE DE CARNE/DELI"
+
+
+#horas están en decimales, no sé cómo hacer lo de las horas
+#---------------------------------------------------------------------------------------------------
+#######doleguita 
+info_horarios_doleguita_path <-
+  "horarios empleados/HORARIO DE DOLEGUITA.xlsx"
+
+# Read
+info_horarios_doleguita <- read_excel(info_horarios_doleguita_path) %>%
+  rename_all(str_to_lower)
+#cambio el header 
+colnames(info_horarios_doleguita) <- info_horarios_doleguita[4, ]
+#borro columnas
+info_horarios_doleguita <- info_horarios_doleguita[-c(1, 2, 3, 4), ]
+#cambio el nombre de horarios_boquete
+colnames(info_horarios_doleguita)[4] <- "SALIDA_LUNCH"
+colnames(info_horarios_doleguita)[5] <- "ENTRADA_LUNCH"
+#remove the firma column
+info_horarios_doleguita <- info_horarios_doleguita[, !(names(info_horarios_doleguita) %in% c("FIRMA"))]
+# erase rows with na 
+info_horarios_doleguita <- na.omit(info_horarios_doleguita)
+
+categorias_doleguita  <- read_excel(info_colaboradores_path_new, sheet = "DOLEGUITA") %>%
+  rename_all(str_to_lower)
+#header  
+colnames(categorias_doleguita) <- categorias_doleguita[4,]
+categorias_doleguita <- categorias_doleguita[-c(1, 2, 3, 4),]
+
+#creo primer_nombre y el primer apellido
+categorias_doleguita$PRIMER_NOMBRE <- sapply(strsplit(categorias_doleguita$NOMBRE," "), `[`, 1)
+categorias_doleguita$PRIMER_APELLIDO <- sapply(strsplit(categorias_doleguita$APELLIDO," "), `[`, 1)
+
+# Use mutate to create the new column "nombre_completo"
+categorias_doleguita <- categorias_doleguita %>%
+  mutate(NOMBRE_COMPLETO = paste(PRIMER_NOMBRE, PRIMER_APELLIDO, sep = " "))
+
+#merge by nombre completo y nombre la ocupacion agrupada
+#le cambio el nombre a la primera columna que se llama nombre y area
+colnames(info_horarios_doleguita)[colnames(info_horarios_doleguita) == "NOMBRE  Y AREA"] <- "NOMBRE"
+
+
+merged_horarios_doleguita <- 
+  merge(info_horarios_doleguita, categorias_doleguita[, c("NOMBRE_COMPLETO", "OCUPACIÓN AGRUPADA")], by.x = "NOMBRE", by.y = "NOMBRE_COMPLETO", all.x = TRUE)
+
+
+#lleno ocupaciones de person4as que no mergearon
+merged_horarios_doleguita[1,]$"OCUPACIÓN AGRUPADA" <- "RECIBIDOR/DESPACHADOR"
+merged_horarios_doleguita[2,]$"OCUPACIÓN AGRUPADA" <- "OFICIAL DE PROCESOS"
+merged_horarios_doleguita[3,]$"OCUPACIÓN AGRUPADA" <- "GONDOLEROS"
+merged_horarios_doleguita[6,]$"OCUPACIÓN AGRUPADA" <- "GONDOLEROS"
+merged_horarios_doleguita[11,]$"OCUPACIÓN AGRUPADA" <- "SUPERVISOR DE SUCURSAL"
+merged_horarios_doleguita[14,]$"OCUPACIÓN AGRUPADA" <- "CAJERO/RA"
+#la # 22 no está
+#merged_horarios_doleguita[22,]$"OCUPACIÓN AGRUPADA" <- "CAJERO/RA"
+
