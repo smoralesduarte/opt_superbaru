@@ -490,6 +490,10 @@ info_horarios_mall_path <-
   "horarios empleados/HORARIO MALL.xlsx"
 info_horarios_riviera_path <-
   "horarios empleados/HORARIO RIVIERA.xlsx"
+info_horarios_volcan_path <-
+  "horarios empleados/HORARIO VOLCAN.xlsx"
+info_horarios_sancristobal_path <-
+  "horarios empleados/HORARIO SAN CRISTOBAL.xlsx"
 
 # Read
 info_horarios_doleguita <- read_excel(info_horarios_doleguita_path) %>%
@@ -504,3 +508,7 @@ info_horarios_mall <- read_excel(info_horarios_mall_path) %>%
   rename_all(str_to_lower)  
 info_horarios_riviera <- read_excel(info_horarios_riviera_path) %>%
   rename_all(str_to_lower)
+info_horarios_volcan <- read_excel(info_horarios_volcan_path) %>%
+  rename_all(str_to_lower)
+info_horarios_sancristobal <- read_excel(info_horarios_sancristobal_path) %>%
+  rename_all(str_to_lower)  
