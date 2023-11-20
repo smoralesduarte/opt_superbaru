@@ -138,11 +138,6 @@ target <- cbind(target_input, target_output)
 # plot inefficient dmus
 plot(efficiencies)
 
-# plot a constant line
-abline(h = 1, col = "red")
-
-plot(rnorm(100))
-
 
 
 #-----------------------------------------------------------------------------
