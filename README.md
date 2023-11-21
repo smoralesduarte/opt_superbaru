@@ -1,2 +1,2 @@
 # opt_superbaru
-Optimization for Superbaru supermarket. Includes DEA. 
+DEA. Quantil.
