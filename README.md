@@ -1,2 +1,2 @@
 # opt_superbaru
-DEA. Quantil.
+DEA for supermarket optimization. Quantil.
