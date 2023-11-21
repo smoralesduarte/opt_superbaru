@@ -564,6 +564,8 @@ final_dea <- tibble(name,
 )
 
 # remove every row that contains a 0 entry
+final_dea_original_zero <- cbind(result_transacciones[, 1:4], final_dea[, -1])
+result_transacciones <- result_transacciones[apply(final_dea[, -1], 1, function(x) !any(x == 0)), ]
 final_dea <- final_dea[apply(final_dea[, -1], 1, function(x) !any(x == 0)), ]
 final_dea_original <- final_dea
 
@@ -602,3 +604,20 @@ plot(result_final_dea)
 # select the rows of the original and the target for which the inefficiencies are less than 0.6
 final_dea_inefficient <- final_dea_original[efficiencies < 0.5, ]
 target_inefficient <- target[efficiencies < 0.5, ]
+
+# add efficiency column to final_dea_original and to target and first 4 columns of result_transacciones
+
+final_dea_original <- cbind(result_transacciones[, 1:4], final_dea_original[, -1], efficiencies)
+target <- cbind(result_transacciones[, 1:4], target, efficiencies)
+
+# Export to excel with pretty formatting
+library(openxlsx)
+wb <- createWorkbook()
+addWorksheet(wb, "Original")
+writeData(wb, "Original", final_dea_original)
+addWorksheet(wb, "Target")
+writeData(wb, "Target", target)
+addWorksheet(wb, "Original including 0")
+writeData(wb, "Original including 0", final_dea_original_zero)
+saveWorkbook(wb, "DEA.xlsx", overwrite = TRUE)
+
