@@ -11,6 +11,7 @@ library(deaR)
 library(ggridges)
 library(lubridate)
 library(tidyr)
+library(hms)
 
 #-----------------------------------------------------------------------------
 info_colaboradores_path <-
@@ -471,6 +472,52 @@ tibble_horarios <- rbind(
   info_horarios_sancristobal
 )
 
+####------------------------
+
+excel_file_horarios <- "horarios empleados/Data de Empleados 22nov2023 v5.xlsx"
+sheet_names_horarios <- excel_sheets(excel_file_horarios)
+
+# Read all sheets into a list
+all_data_horarios <- lapply(sheet_names_horarios, function(sheet) {
+  read_excel(excel_file_horarios, sheet = sheet)
+})
+
+horarios_final <- rbind(all_data_horarios[[1]], all_data_horarios[[2]],
+ all_data_horarios[[3]], all_data_horarios[[4]], 
+ all_data_horarios[[5]], all_data_horarios[[6]], 
+ all_data_horarios[[7]], all_data_horarios[[8]])
+
+#dejo sólo las filas que vacaciones sea no
+horarios_final <- horarios_final %>%
+  filter(vacaciones == "NO")
+
+#dejo sólo las profesiones que nos interesa
+horarios_final <- horarios_final %>%
+  filter(ocupacion %in% c("ASEADOR", "CAJERO/RA", " GONDOLEROS", " DEPENDIENTE DE CARNE/DELI", " DEPENDIENTE DE FRUTAS/VEGETALES" ))
+
+
+#borro la columna vacaciones
+horarios_final <- horarios_final %>%
+  select(-vacaciones)
+
+tibble_horarios <- horarios_final
+
+#cambio una entrada de volcán porque no sé por qué está saliendo mal
+tibble_horarios[83,2] = "10:30:00"
+
+# Convert 'your_column' to hour format
+tibble_horarios <- tibble_horarios %>%
+  mutate(e1 = as_hms(e1))
+tibble_horarios <- tibble_horarios %>%
+  mutate(e2 = as_hms(e2))
+tibble_horarios <- tibble_horarios %>%
+  mutate(s1 = as_hms(s1))
+tibble_horarios <- tibble_horarios %>%
+  mutate(s2 = as_hms(s2))
+
+
+
+#####-------------------------------------
 # Turn every date in the tibble into the hour as a fraction
 tibble_horarios <- tibble_horarios %>%
   mutate(
