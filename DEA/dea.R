@@ -372,107 +372,108 @@ result_transacciones <- result_transacciones %>%
 
 
 ###### -------------------------------------------------------
-info_horarios_doleguita_path <-
-  "horarios empleados/HORARIO DE DOLEGUITA.xlsx"
-info_horarios_boquete_path <-
-  "horarios empleados/HORARIO BOQUETE.xlsx"
-info_horarios_inter_path <-
-  "horarios empleados/HORARIO INTERAMERICANO.XLSX"
-info_horarios_ivu_path <-
-  "horarios empleados/HORARIO IVU DOS PINOS.xlsx"
-info_horarios_mall_path <-
-  "horarios empleados/HORARIO MALL.xlsx"
-info_horarios_riviera_path <-
-  "horarios empleados/HORARIO RIVIERA.xlsx"
-info_horarios_volcan_path <-
-  "horarios empleados/HORARIO VOLCAN.xlsx"
-info_horarios_sancristobal_path <-
-  "horarios empleados/HORARIO SAN CRISTOBAL.xlsx"
+# info_horarios_doleguita_path <-
+#   "horarios empleados/HORARIO DE DOLEGUITA.xlsx"
+# info_horarios_boquete_path <-
+#   "horarios empleados/HORARIO BOQUETE.xlsx"
+# info_horarios_inter_path <-
+#   "horarios empleados/HORARIO INTERAMERICANO.XLSX"
+# info_horarios_ivu_path <-
+#   "horarios empleados/HORARIO IVU DOS PINOS.xlsx"
+# info_horarios_mall_path <-
+#   "horarios empleados/HORARIO MALL.xlsx"
+# info_horarios_riviera_path <-
+#   "horarios empleados/HORARIO RIVIERA.xlsx"
+# info_horarios_volcan_path <-
+#   "horarios empleados/HORARIO VOLCAN.xlsx"
+# info_horarios_sancristobal_path <-
+#   "horarios empleados/HORARIO SAN CRISTOBAL.xlsx"
 
-# Read doleguita, from 3rd row. Remove rows that contain any NA in any column
-info_horarios_doleguita <- read_excel(info_horarios_doleguita_path, skip = 7) %>%
-  rename_all(str_to_lower)
+# # Read doleguita, from 3rd row. Remove rows that contain any NA in any column
+# info_horarios_doleguita <- read_excel(info_horarios_doleguita_path, skip = 7) %>%
+#   rename_all(str_to_lower)
 
-# rename entrada...2 to e1, salida...3 to s1, entrada...4 to e2, salida...5 to s2
-names(info_horarios_doleguita) <- c("nombre", "e1", "s1", "e2", "s2", "ocupacion", "sucursal")
-info_horarios_doleguita <- info_horarios_doleguita %>%
-  dplyr::filter(!is.na(e2))
-
-
-info_horarios_boquete <- read_excel(info_horarios_boquete_path, skip = 6) %>%
-  select(-1) %>%
-  rename_all(str_to_lower)
-
-names(info_horarios_boquete) <- c("nombre", "e1", "s1", "e2", "s2", "ocupacion", "sucursal")
-info_horarios_boquete <- info_horarios_boquete %>%
-  dplyr::filter(!is.na(e2))
+# # rename entrada...2 to e1, salida...3 to s1, entrada...4 to e2, salida...5 to s2
+# names(info_horarios_doleguita) <- c("nombre", "e1", "s1", "e2", "s2", "ocupacion", "sucursal")
+# info_horarios_doleguita <- info_horarios_doleguita %>%
+#   dplyr::filter(!is.na(e2))
 
 
-info_horarios_inter <- read_excel(info_horarios_inter_path, skip=3) %>%
-  select(-1) %>%
-  rename_all(str_to_lower)
+# info_horarios_boquete <- read_excel(info_horarios_boquete_path, skip = 6) %>%
+#   select(-1) %>%
+#   rename_all(str_to_lower)
 
-names(info_horarios_inter) <- c("nombre", "e1", "s1", "e2", "s2", "ocupacion", "sucursal", "none")
-info_horarios_inter <- info_horarios_inter %>%
-  dplyr::filter(!is.na(e2)) %>%
-  select(-none)
-
-info_horarios_ivu <- read_excel(info_horarios_ivu_path, skip=3) %>%
-  select(-1) %>%
-  rename_all(str_to_lower)
-
-names(info_horarios_ivu) <- c("nombre", "e1", "s1", "e2", "s2", "ocupacion", "sucursal")
-info_horarios_ivu <- info_horarios_ivu %>%
-  dplyr::filter(!is.na(e2))
+# names(info_horarios_boquete) <- c("nombre", "e1", "s1", "e2", "s2", "ocupacion", "sucursal")
+# info_horarios_boquete <- info_horarios_boquete %>%
+#   dplyr::filter(!is.na(e2))
 
 
-info_horarios_mall <- read_excel(info_horarios_mall_path, skip=3) %>%
-  rename_all(str_to_lower) %>%
-  select(-firma) %>%
-  select(-1)
+# info_horarios_inter <- read_excel(info_horarios_inter_path, skip=3) %>%
+#   select(-1) %>%
+#   rename_all(str_to_lower)
 
-names(info_horarios_mall) <- c("nombre", "e1", "s1", "e2", "s2", "ocupacion", "sucursal")
-info_horarios_mall <- info_horarios_mall %>%
-  dplyr::filter(!is.na(e2))
+# names(info_horarios_inter) <- c("nombre", "e1", "s1", "e2", "s2", "ocupacion", "sucursal", "none")
+# info_horarios_inter <- info_horarios_inter %>%
+#   dplyr::filter(!is.na(e2)) %>%
+#   select(-none)
 
-info_horarios_riviera <- read_excel(info_horarios_riviera_path, skip=3) %>%
-  rename_all(str_to_lower) %>%
-  select(-1)
+# info_horarios_ivu <- read_excel(info_horarios_ivu_path, skip=3) %>%
+#   select(-1) %>%
+#   rename_all(str_to_lower)
 
-names(info_horarios_riviera) <- c("nombre", "e1", "s1", "e2", "s2", "ocupacion", "sucursal")
-info_horarios_riviera <- info_horarios_riviera %>%
-  dplyr::filter(!is.na(e2))
-
-info_horarios_volcan <- read_excel(info_horarios_volcan_path, skip=6) %>%
-  rename_all(str_to_lower) %>%
-  select(-1)
-
-names(info_horarios_volcan) <- c("nombre", "e1", "s1", "e2", "s2", "ocupacion", "sucursal")
-info_horarios_volcan <- info_horarios_volcan %>%
-  dplyr::filter(!is.na(e2))
+# names(info_horarios_ivu) <- c("nombre", "e1", "s1", "e2", "s2", "ocupacion", "sucursal")
+# info_horarios_ivu <- info_horarios_ivu %>%
+#   dplyr::filter(!is.na(e2))
 
 
-info_horarios_sancristobal <- read_excel(info_horarios_sancristobal_path, skip=2) %>%
-  rename_all(str_to_lower)
+# info_horarios_mall <- read_excel(info_horarios_mall_path, skip=3) %>%
+#   rename_all(str_to_lower) %>%
+#   select(-firma) %>%
+#   select(-1)
 
-names(info_horarios_sancristobal) <- c("nombre", "e1", "s1", "e2", "s2", "ocupacion", "sucursal")
-info_horarios_sancristobal <- info_horarios_sancristobal %>%
-  dplyr::filter(!is.na(e2))
+# names(info_horarios_mall) <- c("nombre", "e1", "s1", "e2", "s2", "ocupacion", "sucursal")
+# info_horarios_mall <- info_horarios_mall %>%
+#   dplyr::filter(!is.na(e2))
+
+# info_horarios_riviera <- read_excel(info_horarios_riviera_path, skip=3) %>%
+#   rename_all(str_to_lower) %>%
+#   select(-1)
+
+# names(info_horarios_riviera) <- c("nombre", "e1", "s1", "e2", "s2", "ocupacion", "sucursal")
+# info_horarios_riviera <- info_horarios_riviera %>%
+#   dplyr::filter(!is.na(e2))
+
+# info_horarios_volcan <- read_excel(info_horarios_volcan_path, skip=6) %>%
+#   rename_all(str_to_lower) %>%
+#   select(-1)
+
+# names(info_horarios_volcan) <- c("nombre", "e1", "s1", "e2", "s2", "ocupacion", "sucursal")
+# info_horarios_volcan <- info_horarios_volcan %>%
+#   dplyr::filter(!is.na(e2))
 
 
-# Merge the tibbles
-tibble_horarios <- rbind(
-  info_horarios_doleguita,
-  info_horarios_boquete,
-  info_horarios_inter,
-  info_horarios_ivu,
-  info_horarios_mall,
-  info_horarios_riviera,
-  info_horarios_volcan,
-  info_horarios_sancristobal
-)
+# info_horarios_sancristobal <- read_excel(info_horarios_sancristobal_path, skip=2) %>%
+#   rename_all(str_to_lower)
+
+# names(info_horarios_sancristobal) <- c("nombre", "e1", "s1", "e2", "s2", "ocupacion", "sucursal")
+# info_horarios_sancristobal <- info_horarios_sancristobal %>%
+#   dplyr::filter(!is.na(e2))
+
+
+# # Merge the tibbles
+# tibble_horarios <- rbind(
+#   info_horarios_doleguita,
+#   info_horarios_boquete,
+#   info_horarios_inter,
+#   info_horarios_ivu,
+#   info_horarios_mall,
+#   info_horarios_riviera,
+#   info_horarios_volcan,
+#   info_horarios_sancristobal
+# )
 
 ####------------------------
+# Run from here
 
 excel_file_horarios <- "horarios empleados/Data de Empleados 22nov2023 v5.xlsx"
 sheet_names_horarios <- excel_sheets(excel_file_horarios)
@@ -493,7 +494,7 @@ horarios_final <- horarios_final %>%
 
 #dejo sólo las profesiones que nos interesa
 horarios_final <- horarios_final %>%
-  filter(ocupacion %in% c("ASEADOR", "CAJERO/RA", " GONDOLEROS", " DEPENDIENTE DE CARNE/DELI", " DEPENDIENTE DE FRUTAS/VEGETALES" ))
+  filter(ocupacion %in% c("ASEADOR", "CAJERO/RA", "GONDOLEROS", "DEPENDIENTE DE CARNE/DELI", "DEPENDIENTE DE FRUTAS/VEGETALES" ))
 
 
 #borro la columna vacaciones
@@ -501,9 +502,6 @@ horarios_final <- horarios_final %>%
   select(-vacaciones)
 
 tibble_horarios <- horarios_final
-
-#cambio una entrada de volcán porque no sé por qué está saliendo mal
-tibble_horarios[83,2] = "10:30:00"
 
 # Convert 'your_column' to hour format
 tibble_horarios <- tibble_horarios %>%
@@ -525,11 +523,11 @@ tibble_horarios <- tibble_horarios %>%
     s1 = hour(s1) + minute(s1) / 60,
     e2 = hour(e2) + minute(e2) / 60,
     s2 = hour(s2) + minute(s2) / 60
-  )
+    )
 
 # e1 is the first entry time, e2 is the second entry time, s1 is the first exit time, s2 is the second exit time
 # There are 4 periods, 6-10, 10-14, 14-18, 18-22
-p1 <- c(6, 10)
+p1  <- c(6, 10)
 p2 <- c(10, 14)
 p3 <- c(14, 18)
 p4 <- c(18, 22)
@@ -539,7 +537,7 @@ horas_trabajadas <- function(e1, s1, period) {
   mincol <- function(x, y) {
     ifelse(x < y, x, y)
   }
-
+  
   maxcol <- function(x, y) {
     ifelse(x > y, x, y)
   }
@@ -590,13 +588,16 @@ tibble_horarios <- tibble_horarios %>%
 
 # remove `` from the column names
 # names(tibble_horarios) <- gsub("'", "", names(tibble_horarios))
-
+#error
 result_transacciones <- result_transacciones %>%
   dplyr::filter(!is.na(periodo))
 
 # rename periodo entries to an integer (horas_p1 to 1, horas_p2 to 2, etc)
 tibble_horarios <- tibble_horarios %>%
   mutate(periodo = as.integer(gsub("horas_p", "", periodo)))
+
+tibble_horarios <- tibble_horarios %>%
+  mutate_if(is.character, str_trim)
 
 result_transacciones <- result_transacciones %>%
   left_join(tibble_horarios,
