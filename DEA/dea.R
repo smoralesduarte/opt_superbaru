@@ -370,6 +370,11 @@ result_transacciones <- left_join(result_transacciones, info_sucursales, by = c(
 result_transacciones <- result_transacciones %>%
   mutate(output_final = ventas / (num_dias))
 
+#CAMBIÉ: QUITO CATEGORÍA DE FIN_MES Y QINCENA
+# Filter rows where 'categoria_dia' is equal to 'otro'
+result_transacciones <- result_transacciones %>%
+  filter(categoria_dia == "otro")
+
 
 ###### -------------------------------------------------------
 # info_horarios_doleguita_path <-
@@ -603,6 +608,94 @@ result_transacciones <- result_transacciones %>%
   left_join(tibble_horarios,
     by = c("sucursal" = "sucursal", "periodo" = "periodo")
   )
+
+################################
+#cambios para sacar modelo después de hacer los cambios
+tibble_optimizada <- tibble_horarios
+#IVU
+#2 cajero menos periodo 2 y periodo 3
+tibble_optimizada <- tibble_optimizada %>%
+  mutate(`CAJERO/RA` = ifelse(sucursal == "IVU DOS PINOS" & (periodo == 2 | periodo == 3),
+  `CAJERO/RA` - 2 * 4,`CAJERO/RA`))
+#1 carnes menos periodo 2
+tibble_optimizada <- tibble_optimizada %>%
+  mutate(`DEPENDIENTE DE CARNE/DELI` = ifelse(sucursal == "IVU DOS PINOS" & (periodo == 2 ),
+  `DEPENDIENTE DE CARNE/DELI` - 4,`DEPENDIENTE DE CARNE/DELI`))
+#2carnes periodo 3
+tibble_optimizada <- tibble_optimizada %>%
+  mutate(`DEPENDIENTE DE CARNE/DELI` = ifelse(sucursal == "IVU DOS PINOS" & (periodo == 3 ),
+  `DEPENDIENTE DE CARNE/DELI` - 2*4,`DEPENDIENTE DE CARNE/DELI`))
+#1 frutas p2
+tibble_optimizada <- tibble_optimizada %>%
+  mutate( `DEPENDIENTE DE FRUTAS/VEGETALES` = ifelse(sucursal == "IVU DOS PINOS" & (periodo == 2 ),
+   `DEPENDIENTE DE FRUTAS/VEGETALES` - 4, `DEPENDIENTE DE FRUTAS/VEGETALES`))
+#2 gondoleros p2
+tibble_optimizada <- tibble_optimizada %>%
+  mutate( GONDOLEROS = ifelse(sucursal == "IVU DOS PINOS" & (periodo == 2 ),
+   GONDOLEROS - 2*4, GONDOLEROS))
+#1 gondolero p3
+tibble_optimizada <- tibble_optimizada %>%
+  mutate( GONDOLEROS = ifelse(sucursal == "IVU DOS PINOS" & (periodo == 3 ),
+   GONDOLEROS - 4, GONDOLEROS))
+
+#RIVIERA
+#2 cajeros p2 y p3
+tibble_optimizada <- tibble_optimizada %>%
+  mutate(`CAJERO/RA` = ifelse(sucursal == "RIVIERA" & (periodo == 2 | periodo == 3),
+  `CAJERO/RA` - 2 * 4,`CAJERO/RA`))
+#1 cajero p1
+tibble_optimizada <- tibble_optimizada %>%
+  mutate(`CAJERO/RA` = ifelse(sucursal == "RIVIERA" & (periodo == 1),
+  `CAJERO/RA` - 4,`CAJERO/RA`))
+#1 carnes p2 y p1
+tibble_optimizada <- tibble_optimizada %>%
+  mutate(`DEPENDIENTE DE CARNE/DELI` = ifelse(sucursal == "RIVIERA" & (periodo == 2 | periodo == 1 ),
+  `DEPENDIENTE DE CARNE/DELI` - 4,`DEPENDIENTE DE CARNE/DELI`))
+#1 frutas p2 y p3
+tibble_optimizada <- tibble_optimizada %>%
+  mutate( `DEPENDIENTE DE FRUTAS/VEGETALES` = ifelse(sucursal == "RIVIERA" & (periodo == 2| periodo == 3 ),
+   `DEPENDIENTE DE FRUTAS/VEGETALES` - 4, `DEPENDIENTE DE FRUTAS/VEGETALES`))
+# 1 gondolero p1 y p2
+tibble_optimizada <- tibble_optimizada %>%
+  mutate( GONDOLEROS = ifelse(sucursal == "RIVIERA" & (periodo == 1 | periodo == 2 ),
+   GONDOLEROS - 4, GONDOLEROS))
+
+#MALL 
+#4 cajeros p2
+tibble_optimizada <- tibble_optimizada %>%
+  mutate(`CAJERO/RA` = ifelse(sucursal == "MALL" & (periodo == 2 ),
+  `CAJERO/RA` - 4 * 4,`CAJERO/RA`))
+#3 cajeros p3
+tibble_optimizada <- tibble_optimizada %>%
+  mutate(`CAJERO/RA` = ifelse(sucursal == "MALL" & (periodo == 3),
+  `CAJERO/RA` - 3 * 4,`CAJERO/RA`))
+#1 carnes p2 y p3
+tibble_optimizada <- tibble_optimizada %>%
+  mutate(`DEPENDIENTE DE CARNE/DELI` = ifelse(sucursal == "MALL" & (periodo == 2 | periodo == 3 ),
+  `DEPENDIENTE DE CARNE/DELI` - 4,`DEPENDIENTE DE CARNE/DELI`))
+#1 gondolero p3  y p2
+tibble_optimizada <- tibble_optimizada %>%
+  mutate( GONDOLEROS = ifelse(sucursal == "MALL" & (periodo == 3 | periodo == 2 ),
+   GONDOLEROS - 4, GONDOLEROS))
+
+#SAN CRISTÓBAL
+# 2 cajeros p3
+tibble_optimizada <- tibble_optimizada %>%
+  mutate(`CAJERO/RA` = ifelse(sucursal == "SAN CRISTOBAL" & (periodo == 3),
+  `CAJERO/RA` - 2 * 4,`CAJERO/RA`))
+# 1 carnes p3
+tibble_optimizada <- tibble_optimizada %>%
+  mutate(`DEPENDIENTE DE CARNE/DELI` = ifelse(sucursal == "SAN CRISTOBAL" & (periodo == 3 ),
+  `DEPENDIENTE DE CARNE/DELI` - 4,`DEPENDIENTE DE CARNE/DELI`))
+#1 gondolero p3
+tibble_optimizada <- tibble_optimizada %>%
+  mutate( GONDOLEROS = ifelse(sucursal == "SAN CRISTOBAL" & (periodo == 3 ),
+   GONDOLEROS - 4, GONDOLEROS))
+
+#correr la siguiente línea si se quieren los resultados de la optimización
+#tibble_horarios <- tibble_optimizada
+
+
 
 name <- apply(result_transacciones[1:4], 1, paste, collapse = " ")
 
