@@ -604,11 +604,6 @@ tibble_horarios <- tibble_horarios %>%
 tibble_horarios <- tibble_horarios %>%
   mutate_if(is.character, str_trim)
 
-result_transacciones <- result_transacciones %>%
-  left_join(tibble_horarios,
-    by = c("sucursal" = "sucursal", "periodo" = "periodo")
-  )
-
 ################################
 #cambios para sacar modelo después de hacer los cambios
 tibble_optimizada <- tibble_horarios
@@ -693,7 +688,14 @@ tibble_optimizada <- tibble_optimizada %>%
    GONDOLEROS - 4, GONDOLEROS))
 
 #correr la siguiente línea si se quieren los resultados de la optimización
-#tibble_horarios <- tibble_optimizada
+tibble_horarios <- tibble_optimizada
+
+result_transacciones <- result_transacciones %>%
+  left_join(tibble_horarios,
+    by = c("sucursal" = "sucursal", "periodo" = "periodo")
+  )
+
+
 
 
 
