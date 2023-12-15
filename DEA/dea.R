@@ -604,6 +604,12 @@ tibble_horarios <- tibble_horarios %>%
 tibble_horarios <- tibble_horarios %>%
   mutate_if(is.character, str_trim)
 
+# Specify the file path where you want to save the Excel file
+file_path <- "horas_antes.xlsx"
+
+# Save the data frame to an Excel file
+write.xlsx(tibble_horarios, file_path, sheetName = "Sheet1", rowNames = FALSE)  
+
 ################################
 #cambios para sacar modelo después de hacer los cambios
 tibble_optimizada <- tibble_horarios
@@ -690,11 +696,21 @@ tibble_optimizada <- tibble_optimizada %>%
 #correr la siguiente línea si se quieren los resultados de la optimización
 tibble_horarios <- tibble_optimizada
 
+# Specify the file path where you want to save the Excel file
+file_path <- "horas_despues.xlsx"
+# Save the data frame to an Excel file
+write.xlsx(tibble_optimizada, file_path, sheetName = "Sheet1", rowNames = FALSE)  
+
+
+
 result_transacciones <- result_transacciones %>%
   left_join(tibble_horarios,
     by = c("sucursal" = "sucursal", "periodo" = "periodo")
   )
-
+# Specify the file path where you want to save the Excel file
+file_path <- "result_transac.xlsx"
+# Save the data frame to an Excel file
+write.xlsx(result_transacciones, file_path, sheetName = "Sheet1", rowNames = FALSE)  
 
 
 
