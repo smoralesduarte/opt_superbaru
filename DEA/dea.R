@@ -695,7 +695,7 @@ tibble_optimizada <- tibble_optimizada %>%
    GONDOLEROS - 4, GONDOLEROS))
 
 #correr la siguiente línea si se quieren los resultados de la optimización
-#tibble_horarios <- tibble_optimizada
+tibble_horarios <- tibble_optimizada
 
 
 #GUARDO LA INFO PARA SABER LOS NÚMEROS DE HORAS ANTES Y DESPUÉS RECOMENDADAS
@@ -779,7 +779,7 @@ tibble_optimizada_super_baru <- tibble_optimizada_super_baru %>%
    GONDOLEROS - 4, GONDOLEROS))
 
 #correr la siguiente línea si se quieren los resultados de la optimización hecha por superbarú
-tibble_horarios <- tibble_optimizada_super_baru
+#tibble_horarios <- tibble_optimizada_super_baru
 
 result_transacciones <- result_transacciones %>%
   left_join(tibble_horarios,
