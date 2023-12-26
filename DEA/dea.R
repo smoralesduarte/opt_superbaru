@@ -12,6 +12,7 @@ library(ggridges)
 library(lubridate)
 library(tidyr)
 library(hms)
+library(openxlsx)
 
 #-----------------------------------------------------------------------------
 info_colaboradores_path <-
@@ -694,14 +695,14 @@ tibble_optimizada <- tibble_optimizada %>%
    GONDOLEROS - 4, GONDOLEROS))
 
 #correr la siguiente línea si se quieren los resultados de la optimización
-tibble_horarios <- tibble_optimizada
+#tibble_horarios <- tibble_optimizada
 
+
+#GUARDO LA INFO PARA SABER LOS NÚMEROS DE HORAS ANTES Y DESPUÉS RECOMENDADAS
 # Specify the file path where you want to save the Excel file
 file_path <- "horas_despues.xlsx"
 # Save the data frame to an Excel file
 write.xlsx(tibble_optimizada, file_path, sheetName = "Sheet1", rowNames = FALSE)  
-
-
 
 result_transacciones <- result_transacciones %>%
   left_join(tibble_horarios,
@@ -714,6 +715,78 @@ write.xlsx(result_transacciones, file_path, sheetName = "Sheet1", rowNames = FAL
 
 
 
+
+################################
+#cambios para sacar modelo después de hacer los cambios: VERSIÓN SUPERBARÚ
+tibble_optimizada_super_baru <- tibble_horarios
+#IVU
+#2 cajero menos
+tibble_optimizada_super_baru <- tibble_optimizada_super_baru %>%
+  mutate(`CAJERO/RA` = ifelse(sucursal == "IVU DOS PINOS" & (periodo == 1 |periodo == 2 | periodo == 3 | periodo == 4),
+  `CAJERO/RA` - 2 * 4,`CAJERO/RA`))
+#2 carnes menos
+tibble_optimizada_super_baru <- tibble_optimizada_super_baru %>%
+  mutate(`DEPENDIENTE DE CARNE/DELI` = ifelse(sucursal == "IVU DOS PINOS" & (periodo == 1 |periodo == 2 | periodo == 3 | periodo == 4),
+  `DEPENDIENTE DE CARNE/DELI` - 2*4,`DEPENDIENTE DE CARNE/DELI`))
+#1 gondoleros menos
+tibble_optimizada_super_baru <- tibble_optimizada_super_baru %>%
+  mutate( GONDOLEROS = ifelse(sucursal == "IVU DOS PINOS" & (periodo == 1 |periodo == 2 | periodo == 3 | periodo == 4),
+   GONDOLEROS - 4, GONDOLEROS))
+
+
+#RIVIERA
+#2 cajeros menos
+tibble_optimizada_super_baru <- tibble_optimizada_super_baru %>%
+  mutate(`CAJERO/RA` = ifelse(sucursal == "RIVIERA" & (periodo == 1 |periodo == 2 | periodo == 3 | periodo == 4),
+  `CAJERO/RA` - 2 * 4,`CAJERO/RA`))
+#1 frutas menos
+tibble_optimizada_super_baru <- tibble_optimizada_super_baru %>%
+  mutate( `DEPENDIENTE DE FRUTAS/VEGETALES` = ifelse(sucursal == "RIVIERA" & (periodo == 1 |periodo == 2 | periodo == 3 | periodo == 4),
+   `DEPENDIENTE DE FRUTAS/VEGETALES` - 4, `DEPENDIENTE DE FRUTAS/VEGETALES`))
+# 1 gondolero menos
+tibble_optimizada_super_baru <- tibble_optimizada_super_baru %>%
+  mutate( GONDOLEROS = ifelse(sucursal == "RIVIERA" & (periodo == 1 |periodo == 2 | periodo == 3 | periodo == 4),
+   GONDOLEROS - 4, GONDOLEROS))
+
+
+#MALL 
+#3 cajeros menos
+tibble_optimizada_super_baru <- tibble_optimizada_super_baru %>%
+  mutate(`CAJERO/RA` = ifelse(sucursal == "MALL" & (periodo == 1 |periodo == 2 | periodo == 3 | periodo == 4),
+  `CAJERO/RA` - 3 * 4,`CAJERO/RA`))
+#1 carnes menos
+tibble_optimizada_super_baru <- tibble_optimizada_super_baru %>%
+  mutate(`DEPENDIENTE DE CARNE/DELI` = ifelse(sucursal == "MALL" & (periodo == 1 |periodo == 2 | periodo == 3 | periodo == 4),
+  `DEPENDIENTE DE CARNE/DELI` - 4,`DEPENDIENTE DE CARNE/DELI`))
+#2 gondolero menos
+tibble_optimizada_super_baru <- tibble_optimizada_super_baru %>%
+  mutate( GONDOLEROS = ifelse(sucursal == "MALL" & (periodo == 1 |periodo == 2 | periodo == 3 | periodo == 4),
+   GONDOLEROS - 2* 4, GONDOLEROS))
+
+
+#SAN CRISTÓBAL
+# 1 cajeros menos
+tibble_optimizada_super_baru <- tibble_optimizada_super_baru %>%
+  mutate(`CAJERO/RA` = ifelse(sucursal == "SAN CRISTOBAL" & (periodo == 1 |periodo == 2 | periodo == 3 | periodo == 4),
+  `CAJERO/RA` -  4,`CAJERO/RA`))
+# 1 carnes menos
+tibble_optimizada_super_baru <- tibble_optimizada_super_baru %>%
+  mutate(`DEPENDIENTE DE CARNE/DELI` = ifelse(sucursal == "SAN CRISTOBAL" & (periodo == 1 |periodo == 2 | periodo == 3 | periodo == 4),
+  `DEPENDIENTE DE CARNE/DELI` - 4,`DEPENDIENTE DE CARNE/DELI`))
+#1 gondolero menos
+tibble_optimizada_super_baru <- tibble_optimizada_super_baru %>%
+  mutate( GONDOLEROS = ifelse(sucursal == "SAN CRISTOBAL" & (periodo == 1 |periodo == 2 | periodo == 3 | periodo == 4),
+   GONDOLEROS - 4, GONDOLEROS))
+
+#correr la siguiente línea si se quieren los resultados de la optimización hecha por superbarú
+tibble_horarios <- tibble_optimizada_super_baru
+
+result_transacciones <- result_transacciones %>%
+  left_join(tibble_horarios,
+    by = c("sucursal" = "sucursal", "periodo" = "periodo")
+  )
+
+#####################################################
 
 name <- apply(result_transacciones[1:4], 1, paste, collapse = " ")
 
