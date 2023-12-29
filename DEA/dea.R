@@ -609,7 +609,124 @@ tibble_horarios <- tibble_horarios %>%
 file_path <- "horas_antes.xlsx"
 
 # Save the data frame to an Excel file
-write.xlsx(tibble_horarios, file_path, sheetName = "Sheet1", rowNames = FALSE)  
+write.xlsx(tibble_horarios, file_path, sheetName = "Sheet1", rowNames = FALSE)
+
+##############################
+############################## cambios que hizo superbarú
+# Specify the path to your Excel file
+excel_file_con_reducciones <- "horarios empleados/data empleados con reduccion superbaru.xlsx"
+# Get the names of all sheets in the Excel file
+all_sheets <- excel_sheets(excel_file_con_reducciones)
+# Specify the sheets you want to read
+sheets_to_read <- c("MALL", "IVU", "SAN CRISTOBAL", "RIVIERA")
+# Read only the specified sheets
+data_list <- lapply(sheets_to_read, function(sheet) {
+  read_excel(excel_file_con_reducciones, sheet = sheet)
+})
+horarios_final_con_reducciones <- rbind(data_list[[1]], data_list[[2]],
+ data_list[[3]], data_list[[4]])
+
+
+#dejo sólo las filas que reduccion sea "si"
+horarios_final_con_reducciones <- horarios_final_con_reducciones %>%
+  filter(reduccion == "si")
+#borro la columna vacaciones y reduccion
+horarios_final_con_reducciones <- horarios_final_con_reducciones %>%
+  select(-vacaciones)
+horarios_final_con_reducciones <- horarios_final_con_reducciones %>%
+  select(-reduccion)  
+tibble_horarios_con_reducciones <- horarios_final_con_reducciones
+
+
+# Convert 'your_column' to hour format
+tibble_horarios_con_reducciones <- tibble_horarios_con_reducciones %>%
+  mutate(e1 = as_hms(e1))
+tibble_horarios_con_reducciones <- tibble_horarios_con_reducciones %>%
+  mutate(e2 = as_hms(e2))
+tibble_horarios_con_reducciones <- tibble_horarios_con_reducciones %>%
+  mutate(s1 = as_hms(s1))
+tibble_horarios_con_reducciones <- tibble_horarios_con_reducciones %>%
+  mutate(s2 = as_hms(s2))
+
+
+tibble_horarios_con_reducciones <- tibble_horarios_con_reducciones %>%
+  mutate(
+    e1 = hour(e1) + minute(e1) / 60,
+    s1 = hour(s1) + minute(s1) / 60,
+    e2 = hour(e2) + minute(e2) / 60,
+    s2 = hour(s2) + minute(s2) / 60
+    )
+
+# Make 4 extra columns, counting the hours worked in each period per person
+tibble_horarios_con_reducciones <- tibble_horarios_con_reducciones %>%
+  mutate(
+    horas_p1 = horas_trabajadas(e1, s1, p1) +
+      horas_trabajadas(e2, s2, p1),
+    horas_p2 = horas_trabajadas(e1, s1, p2) +
+      horas_trabajadas(e2, s2, p2),
+    horas_p3 = horas_trabajadas(e1, s1, p3) +
+      horas_trabajadas(e2, s2, p3),
+    horas_p4 = horas_trabajadas(e1, s1, p4) +
+      horas_trabajadas(e2, s2, p4)
+  )
+
+# group by ocupacion and sucursal, and summarize the total hours worked in each period
+tibble_horarios_con_reducciones <- tibble_horarios_con_reducciones %>%
+  group_by(ocupacion, sucursal) %>%
+  dplyr::summarize(
+    horas_p1 = sum(horas_p1),
+    horas_p2 = sum(horas_p2),
+    horas_p3 = sum(horas_p3),
+    horas_p4 = sum(horas_p4)
+  )
+# make a new tibble, the columns are the occupations and the rows are the periods and sucursal
+tibble_horarios_con_reducciones <- tibble_horarios_con_reducciones %>%
+  pivot_longer(
+    cols = c(horas_p1, horas_p2, horas_p3, horas_p4),
+    names_to = "periodo",
+    values_to = "horas"
+  ) %>%
+  pivot_wider(
+    names_from = "ocupacion",
+    values_from = "horas"
+  )
+# rename periodo entries to an integer (horas_p1 to 1, horas_p2 to 2, etc)
+tibble_horarios_con_reducciones <- tibble_horarios_con_reducciones %>%
+  mutate(periodo = as.integer(gsub("horas_p", "", periodo)))
+
+tibble_horarios_con_reducciones <- tibble_horarios_con_reducciones %>%
+  mutate_if(is.character, str_trim)
+
+# Replace NA values with 0 across all columns
+tibble_horarios_con_reducciones <- tibble_horarios_con_reducciones %>%
+  mutate_all(~ifelse(is.na(.), 0, .))
+# Add a new column named "ASEADORES" filled with 0's
+tibble_horarios_con_reducciones <- tibble_horarios_con_reducciones %>%
+  mutate(ASEADOR = 0)
+
+
+# Restar las entradas de tibble_horarios_con_reducciones de tibble_horarios
+resultado <- tibble_horarios %>%
+  left_join(tibble_horarios_con_reducciones, by = c("sucursal", "periodo")) %>%
+  mutate(
+    ASEADOR = ifelse(!is.na(ASEADOR.y), ASEADOR.x - ASEADOR.y, ASEADOR.x),
+    `CAJERO/RA` = ifelse(!is.na(`CAJERO/RA.y`), `CAJERO/RA.x` - `CAJERO/RA.y`, `CAJERO/RA.x`),
+    `DEPENDIENTE DE CARNE/DELI` = ifelse(!is.na(`DEPENDIENTE DE CARNE/DELI.y`), `DEPENDIENTE DE CARNE/DELI.x` - `DEPENDIENTE DE CARNE/DELI.y`, `DEPENDIENTE DE CARNE/DELI.x`),
+    `DEPENDIENTE DE FRUTAS/VEGETALES` = ifelse(!is.na(`DEPENDIENTE DE FRUTAS/VEGETALES.y`), `DEPENDIENTE DE FRUTAS/VEGETALES.x` - `DEPENDIENTE DE FRUTAS/VEGETALES.y`, `DEPENDIENTE DE FRUTAS/VEGETALES.x`),
+    GONDOLEROS = ifelse(!is.na(GONDOLEROS.y), GONDOLEROS.x - GONDOLEROS.y, GONDOLEROS.x)
+  ) %>%
+  select(sucursal, periodo, ASEADOR, `CAJERO/RA`, `DEPENDIENTE DE CARNE/DELI`, `DEPENDIENTE DE FRUTAS/VEGETALES`, GONDOLEROS)
+
+#correr la siguiente línea para resultados modificaciones sb
+tibble_horarios <- resultado
+
+result_transacciones <- result_transacciones %>%
+  left_join(tibble_horarios,
+    by = c("sucursal" = "sucursal", "periodo" = "periodo")
+  )
+
+##############################
+##############################
 
 ################################
 #cambios para sacar modelo después de hacer los cambios
@@ -716,78 +833,7 @@ write.xlsx(result_transacciones, file_path, sheetName = "Sheet1", rowNames = FAL
 
 
 
-################################
-#cambios para sacar modelo después de hacer los cambios: VERSIÓN SUPERBARÚ
-tibble_optimizada_super_baru <- tibble_horarios
-#IVU
-#2 cajero menos
-tibble_optimizada_super_baru <- tibble_optimizada_super_baru %>%
-  mutate(`CAJERO/RA` = ifelse(sucursal == "IVU DOS PINOS" & (periodo == 1 |periodo == 2 | periodo == 3 | periodo == 4),
-  5*4,`CAJERO/RA`))
-#2 carnes menos
-tibble_optimizada_super_baru <- tibble_optimizada_super_baru %>%
-  mutate(`DEPENDIENTE DE CARNE/DELI` = ifelse(sucursal == "IVU DOS PINOS" & (periodo == 1 |periodo == 2 | periodo == 3 | periodo == 4),
-  3*4,`DEPENDIENTE DE CARNE/DELI`))
-#1 gondoleros menos
-tibble_optimizada_super_baru <- tibble_optimizada_super_baru %>%
-  mutate( GONDOLEROS = ifelse(sucursal == "IVU DOS PINOS" & (periodo == 1 |periodo == 2 | periodo == 3 | periodo == 4),
-   3*4, GONDOLEROS))
-
-
-#RIVIERA
-#2 cajeros menos
-tibble_optimizada_super_baru <- tibble_optimizada_super_baru %>%
-  mutate(`CAJERO/RA` = ifelse(sucursal == "RIVIERA" & (periodo == 1 |periodo == 2 | periodo == 3 | periodo == 4),
-  5 * 4,`CAJERO/RA`))
-#1 frutas menos
-tibble_optimizada_super_baru <- tibble_optimizada_super_baru %>%
-  mutate( `DEPENDIENTE DE FRUTAS/VEGETALES` = ifelse(sucursal == "RIVIERA" & (periodo == 1 |periodo == 2 | periodo == 3 | periodo == 4),
-   3* 4, `DEPENDIENTE DE FRUTAS/VEGETALES`))
-# 1 gondolero menos
-tibble_optimizada_super_baru <- tibble_optimizada_super_baru %>%
-  mutate( GONDOLEROS = ifelse(sucursal == "RIVIERA" & (periodo == 1 |periodo == 2 | periodo == 3 | periodo == 4),
-   3*4, GONDOLEROS))
-
-
-#MALL 
-#3 cajeros menos
-tibble_optimizada_super_baru <- tibble_optimizada_super_baru %>%
-  mutate(`CAJERO/RA` = ifelse(sucursal == "MALL" & (periodo == 1 |periodo == 2 | periodo == 3 | periodo == 4),
-  5 * 4,`CAJERO/RA`))
-#1 carnes menos
-tibble_optimizada_super_baru <- tibble_optimizada_super_baru %>%
-  mutate(`DEPENDIENTE DE CARNE/DELI` = ifelse(sucursal == "MALL" & (periodo == 1 |periodo == 2 | periodo == 3 | periodo == 4),
-  4* 4,`DEPENDIENTE DE CARNE/DELI`))
-#2 gondolero menos
-tibble_optimizada_super_baru <- tibble_optimizada_super_baru %>%
-  mutate( GONDOLEROS = ifelse(sucursal == "MALL" & (periodo == 1 |periodo == 2 | periodo == 3 | periodo == 4),
-   3* 4, GONDOLEROS))
-
-
-#SAN CRISTÓBAL
-# 1 cajeros menos
-tibble_optimizada_super_baru <- tibble_optimizada_super_baru %>%
-  mutate(`CAJERO/RA` = ifelse(sucursal == "SAN CRISTOBAL" & (periodo == 1 |periodo == 2 | periodo == 3 | periodo == 4),
-  8* 4,`CAJERO/RA`))
-# 1 carnes menos
-tibble_optimizada_super_baru <- tibble_optimizada_super_baru %>%
-  mutate(`DEPENDIENTE DE CARNE/DELI` = ifelse(sucursal == "SAN CRISTOBAL" & (periodo == 1 |periodo == 2 | periodo == 3 | periodo == 4),
-  4*4,`DEPENDIENTE DE CARNE/DELI`))
-#1 gondolero menos
-tibble_optimizada_super_baru <- tibble_optimizada_super_baru %>%
-  mutate( GONDOLEROS = ifelse(sucursal == "SAN CRISTOBAL" & (periodo == 1 |periodo == 2 | periodo == 3 | periodo == 4),
-   5* 4, GONDOLEROS))
-
-#correr la siguiente línea si se quieren los resultados de la optimización hecha por superbarú
-tibble_horarios <- tibble_optimizada_super_baru
-
-result_transacciones <- result_transacciones %>%
-  left_join(tibble_horarios,
-    by = c("sucursal" = "sucursal", "periodo" = "periodo")
-  )
-
-#####################################################
-
+####################################################################
 name <- apply(result_transacciones[1:4], 1, paste, collapse = " ")
 
 final_dea <- tibble(name,
